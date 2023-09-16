@@ -1,0 +1,59 @@
+---
+- name: Install SSM Agent
+  hosts: linux, windows
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Determine OS distribution
+      ansible_become: yes
+      command: "cat /etc/os-release"
+      register: os_info
+      ignore_errors: yes
+
+    - name: Check if SSM Agent is already installed
+      ansible_become: yes
+      shell: "ssm-agent status"
+      register: ssm_status
+      ignore_errors: yes
+      when: "'ssm-agent is running' not in ssm_status.stdout"
+
+    - name: Install SSM Agent on Ubuntu/Debian
+      ansible_become: yes
+      apt:
+        name: amazon-ssm-agent
+        state: present
+      when: "'Ubuntu' in os_info.stdout or 'Debian' in os_info.stdout"
+
+    - name: Install SSM Agent on RHEL/CentOS
+      ansible_become: yes
+      yum:
+        name: amazon-ssm-agent
+        state: present
+      when: "'Red Hat' in os_info.stdout or 'CentOS' in os_info.stdout"
+
+    - name: Install SSM Agent on SUSE Linux Enterprise
+      ansible_become: yes
+      zypper:
+        name: amazon-ssm-agent
+        state: present
+      when: "'SUSE' in os_info.stdout"
+
+    - name: Restart SSM Agent service on Linux
+      ansible_become: yes
+      service:
+        name: amazon-ssm-agent
+        state: restarted
+      when: "'ssm-agent is running' not in ssm_status.stdout"
+
+    - name: Check if SSM Agent is already installed on Windows
+      ansible_become: yes
+      win_shell: "Get-Service -Name 'AmazonSSMAgent'"
+      register: ssm_status_win
+      ignore_errors: yes
+      when: "'AmazonSSMAgent' not in ssm_status_win.stdout"
+
+    - name: Install SSM Agent on Windows
+      ansible_become: yes
+      win_command: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/windows_amd64/AmazonSSMAgentSetup.exe"
+      when: "'AmazonSSMAgent' not in ssm_status_win.stdout"

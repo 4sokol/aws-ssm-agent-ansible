@@ -1,0 +1,7 @@
+[linux]
+ec2-linux1 ansible_host=10.0.0.2 ansible_ssh_private_key_file=/path/to/linux-ssh-key1.pem
+ec2-linux2 ansible_host=10.0.0.4 ansible_ssh_private_key_file=/path/to/linux-ssh-key2.pem
+
+
+[windows]
+ec2-windows1 ansible_host=10.0.0.3 ansible_ssh_private_key_file=/path/to/windows-ssh-key3.pem ansible_user=Administrator ansible_password=your_password ansible_winrm_server_cert_validation=ignore
